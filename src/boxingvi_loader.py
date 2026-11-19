@@ -30,3 +30,23 @@ def read_annotations(path: str | Path) -> pd.DataFrame:
             class_col, best = c, hits
     if class_col is None:
         raise ValueError("클래스 열을 찾지 못함")
+
+    rows = raw[norm(raw[class_col]).isin(CLASS_TO_ID)]
+    num_cols = [
+        c
+        for c in raw.columns
+        if c != class_col and pd.to_numeric(rows[c], errors="coerce").notna().all()
+    ]
+    if len(num_cols) < 2:
+        raise ValueError("시작/끝 프레임 열을 찾지 못함")
+
+    out = pd.DataFrame(
+        {
+            "start": rows[num_cols[0]].astype(int).values,
+            "end": rows[num_cols[1]].astype(int).values,
+            "class": norm(rows[class_col]).values,
+        }
+    )
+
+    out["label"] = out["class"].map(CLASS_TO_ID)
+    return out.reset_index(drop=True)
