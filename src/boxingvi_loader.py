@@ -13,6 +13,7 @@ VIDEO_NAMES = [f"V{i}" for i in range(1, 11)]
 class VideoData:
     name: str
     skeleton: np.ndarray
+    mask: np.ndarray
     labels: np.ndarray
     start: np.ndarray
     end: np.ndarray
@@ -55,15 +56,18 @@ def read_annotations(path: str | Path) -> pd.DataFrame:
 
 def load_video(data_dir: str | Path, name: str) -> VideoData:
     data_dir = Path(data_dir)
-    ann = read_annotations(data_dir / f"{name}.xlsx")
-    sk = np.load(data_dir / f"{name}.npy")
+    ann = read_annotations(data_dir / "annotation" / f"{name}.xlsx")
+    sk = np.load(data_dir / "skeleton" / f"{name}.npy")
 
     if len(sk) != len(ann):
         raise ValueError(f"{name}: 클립 수 불일치 ({len(ann)} vs {len(sk)})")
 
+    mask = ~(sk == 0).all(axis=(2, 3))
+
     return VideoData(
         name=name,
         skeleton=sk,
+        mask=mask,
         labels=ann["label"].values,
         start=ann["start"].values,
         end=ann["end"].values,
