@@ -7,6 +7,7 @@ import pandas as pd
 CLASSES = ["jab", "cross", "lead hook", "lead uppercut", "rear hook", "rear uppercut"]
 CLASS_TO_ID = {c: i for i, c in enumerate(CLASSES)}
 VIDEO_NAMES = [f"V{i}" for i in range(1, 11)]
+MAX_FRAMES = 25
 
 
 @dataclass
@@ -64,11 +65,14 @@ def load_video(data_dir: str | Path, name: str) -> VideoData:
 
     mask = ~(sk == 0).all(axis=(2, 3))
 
+    length = (ann["end"] - ann["start"] + 1).values
+    keep = (length >= 1) & (length <= MAX_FRAMES)
+
     return VideoData(
         name=name,
-        skeleton=sk,
-        mask=mask,
-        labels=ann["label"].values,
-        start=ann["start"].values,
-        end=ann["end"].values,
+        skeleton=sk[keep],
+        mask=mask[keep],
+        labels=ann["label"].values[keep],
+        start=ann["start"].values[keep],
+        end=ann["end"].values[keep],
     )
