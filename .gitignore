@@ -1,0 +1,7 @@
+data/
+outputs/
+*.pt
+*.mp4
+*.webm
+.ipynb_checkpoints/
+__pycache__/
